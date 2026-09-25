@@ -1,0 +1,28 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+venv/
+env/
+ENV/
+.env
+
+# PyInstaller build artifacts
+build/
+*.spec
+
+# IDE configs
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# OS metadata
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Logs
+*.log
