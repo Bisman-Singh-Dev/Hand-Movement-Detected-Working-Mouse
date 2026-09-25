@@ -38,13 +38,11 @@ def test_mouse_controller_mapping():
 
 
 def test_gesture_pinch_click():
-    """Test that a quick pinch and release (<2s) produces a CLICK event."""
-    print("Testing quick pinch (< 2.0s) -> CLICK event...")
+    """Test that pinching produces an instant CLICK event."""
+    print("Testing pinch -> instant CLICK event...")
     recognizer = GestureRecognizer(
-        pinch_threshold=0.07,
-        pinch_release_threshold=0.09,
-        hold_delay_seconds=2.0,
-        min_click_duration=0.01,
+        pinch_threshold=0.085,
+        pinch_release_threshold=0.10,
     )
 
     # Mock hand data: open hand (distance thumb to index is large)
@@ -53,7 +51,6 @@ def test_gesture_pinch_click():
         "pixels": [(0, 0)] * 21,
         "scale": 1.0,
     }
-    # Thumb tip (4) at (0.2, 0.5, 0), Index tip (8) at (0.5, 0.5, 0) -> dist = 0.3 (far)
     open_hand["raw"][4] = (0.2, 0.5, 0.0)
     open_hand["raw"][8] = (0.5, 0.5, 0.0)
     open_hand["pixels"][4] = (100, 250)
@@ -63,7 +60,7 @@ def test_gesture_pinch_click():
     ev = recognizer.process(open_hand)
     assert ev.state == MouseState.IDLE
 
-    # Pinch hand: thumb and index tips are close (dist = 0.02 < 0.07)
+    # Pinch hand: thumb and index tips touch (pixel distance 10px < 38px)
     pinched_hand = {
         "raw": [(0, 0, 0)] * 21,
         "pixels": [(0, 0)] * 21,
@@ -72,78 +69,25 @@ def test_gesture_pinch_click():
     pinched_hand["raw"][4] = (0.30, 0.5, 0.0)
     pinched_hand["raw"][8] = (0.32, 0.5, 0.0)
     pinched_hand["pixels"][4] = (150, 250)
-    pinched_hand["pixels"][8] = (160, 250)
+    pinched_hand["pixels"][8] = (158, 250)
 
-    # Start pinch
+    # Instant click trigger
     ev1 = recognizer.process(pinched_hand)
-    assert ev1.event_type == "PINCH_START"
-    assert ev1.state == MouseState.PINCHING
+    assert ev1.event_type == "CLICK", f"Expected CLICK, got {ev1.event_type}"
+    assert ev1.state == MouseState.CLICKED
 
-    # Wait a small instant (< 2.0s)
-    time.sleep(0.05)
-
-    # Release pinch
-    ev2 = recognizer.process(open_hand)
-    assert ev2.event_type == "CLICK", f"Expected CLICK, got {ev2.event_type}"
-    assert ev2.state == MouseState.CLICKED
-    print("✅ Quick pinch -> CLICK event passed!")
-
-
-def test_gesture_pinch_hold_2_seconds():
-    """Test that maintaining pinch for >= 2.0s engages HOLD (Slider / Drag mode)."""
-    print("Testing sustained pinch (>= 2.0s) -> HOLD / DRAG event...")
-    # Use 0.5s for fast unit test of hold threshold logic
-    recognizer = GestureRecognizer(
-        pinch_threshold=0.07,
-        pinch_release_threshold=0.09,
-        hold_delay_seconds=0.4,  # test threshold
-        min_click_duration=0.01,
-    )
-
-    open_hand = {
-        "raw": [(0, 0, 0)] * 21,
-        "pixels": [(0, 0)] * 21,
-        "scale": 1.0,
-    }
-    open_hand["raw"][4] = (0.2, 0.5, 0.0)
-    open_hand["raw"][8] = (0.6, 0.5, 0.0)
-
-    pinched_hand = {
-        "raw": [(0, 0, 0)] * 21,
-        "pixels": [(0, 0)] * 21,
-        "scale": 1.0,
-    }
-    pinched_hand["raw"][4] = (0.30, 0.5, 0.0)
-    pinched_hand["raw"][8] = (0.32, 0.5, 0.0)
-    pinched_hand["pixels"][4] = (150, 250)
-    pinched_hand["pixels"][8] = (160, 250)
-
-    # Start pinch
-    ev1 = recognizer.process(pinched_hand)
-    assert ev1.event_type == "PINCH_START"
-
-    # Mid-pinch progress
-    time.sleep(0.15)
+    # Ongoing pinch does not spam duplicate clicks
     ev_mid = recognizer.process(pinched_hand)
     assert ev_mid.event_type == "PINCH_PROGRESS"
-    assert 0.0 < ev_mid.progress < 1.0
 
-    # Wait past hold threshold
-    time.sleep(0.3)
-    ev_hold = recognizer.process(pinched_hand)
-    assert ev_hold.event_type == "HOLD_START", f"Expected HOLD_START, got {ev_hold.event_type}"
-    assert ev_hold.state == MouseState.HOLDING
+    # Open fingers resets pinch state
+    ev_rel = recognizer.process(open_hand)
+    assert not recognizer.is_pinching
 
-    # Maintain pinch: should stay in HOLDING state (dragging slider)
-    ev_holding = recognizer.process(pinched_hand)
-    assert ev_holding.event_type == "HOLDING"
-    assert ev_holding.state == MouseState.HOLDING
-
-    # Release pinch: should trigger HOLD_RELEASE
-    ev_release = recognizer.process(open_hand)
-    assert ev_release.event_type == "HOLD_RELEASE", f"Expected HOLD_RELEASE, got {ev_release.event_type}"
-    assert ev_release.state == MouseState.IDLE
-    print("✅ Sustained pinch -> HOLD / DRAG event passed!")
+    # Next pinch triggers click again
+    ev2 = recognizer.process(pinched_hand)
+    assert ev2.event_type == "CLICK"
+    print("✅ Pinch -> instant CLICK event passed!")
 
 
 def test_hud_rendering():
@@ -177,7 +121,6 @@ if __name__ == "__main__":
     print("========================================")
     test_mouse_controller_mapping()
     test_gesture_pinch_click()
-    test_gesture_pinch_hold_2_seconds()
     test_hud_rendering()
     print("========================================")
     print(" 🎉 ALL TESTS PASSED SUCCESSFULLY!")

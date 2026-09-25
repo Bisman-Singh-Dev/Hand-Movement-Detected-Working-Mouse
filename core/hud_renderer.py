@@ -95,69 +95,23 @@ class HUDRenderer:
         is_holding: bool,
     ):
         """
-        Draws a circular arc indicating 0.0s -> 2.0s hold progression.
-        Transitions into a pulsating glow when Hold & Drag (Slider Mode) is active.
+        Draws visual feedback ring at the pinch point.
         """
         cx, cy = center
-        radius = 32
-
-        if is_holding:
-            # Active Dragging / Holding state (Glowing Amber)
-            pulse = int(5 * math.sin(time.time() * 10))
-            cv2.circle(frame, (cx, cy), radius + pulse, (0, 165, 255), 4, cv2.LINE_AA)
-            cv2.circle(frame, (cx, cy), 8, (0, 165, 255), -1, cv2.LINE_AA)
-            
-            # Badge text
-            label = "HOLD / SLIDER ACTIVE"
-            cv2.putText(
-                frame,
-                label,
-                (cx - 75, cy - radius - 12),
-                cv2.FONT_HERSHEY_DUPLEX,
-                0.55,
-                (0, 165, 255),
-                1,
-                cv2.LINE_AA,
-            )
-        else:
-            # Base circle
-            cv2.circle(frame, (cx, cy), radius, (100, 100, 100), 2, cv2.LINE_AA)
-            cv2.circle(frame, (cx, cy), 5, (255, 255, 255), -1, cv2.LINE_AA)
-
-            # Circular Progress Arc
-            if progress > 0.01:
-                start_angle = -90
-                end_angle = int(-90 + progress * 360)
-                # Color transitions from Cyan to Bright Orange as progress fills
-                b = int(255 * (1.0 - progress))
-                g = int(200 * (1.0 - 0.3 * progress))
-                r = int(255 * progress)
-                color = (b, g, r)
-
-                cv2.ellipse(
-                    frame,
-                    (cx, cy),
-                    (radius, radius),
-                    0,
-                    start_angle,
-                    end_angle,
-                    color,
-                    5,
-                    cv2.LINE_AA,
-                )
-
-                # Progress percentage
-                pct_str = f"{int(progress * 100)}%"
-                cv2.putText(
-                    frame,
-                    pct_str,
-                    (cx - 15, cy - radius - 10),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.45,
-                    color,
-                    1,
-                    cv2.LINE_AA,
-                )
+        radius = 28
+        # Instant click feedback circle
+        cv2.circle(frame, (cx, cy), radius, (0, 255, 255), 3, cv2.LINE_AA)
+        cv2.circle(frame, (cx, cy), 6, (255, 255, 255), -1, cv2.LINE_AA)
+        cv2.putText(
+            frame,
+            "PINCH CLICK",
+            (cx - 45, cy - radius - 8),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.45,
+            (0, 255, 255),
+            1,
+            cv2.LINE_AA,
+        )
 
     def draw_top_bar(
         self,
@@ -269,11 +223,11 @@ class HUDRenderer:
         )
 
         # Hotkey instructions
-        legend_text = "[Q] Quit  |  [P] Pause  |  [H] HUD  |  Hold Pinch >2s = Drag"
+        legend_text = "[Q] Quit  |  [P] Pause  |  [H] HUD  |  Pinch = Click"
         cv2.putText(
             frame,
             legend_text,
-            (w - 410, h - 10),
+            (w - 380, h - 10),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.40,
             (160, 160, 175),

@@ -28,10 +28,9 @@ class AppConfig:
     SMOOTHING_FACTOR: float = 5.0
     ACCELERATION_FACTOR: float = 1.2  # Slight velocity-based acceleration
 
-    # --- Gesture Detection Thresholds ---
     # Normalized pinch distance threshold (distance relative to hand landmark reference scale)
-    PINCH_THRESHOLD: float = 0.065
-    PINCH_RELEASE_THRESHOLD: float = 0.085
+    PINCH_THRESHOLD: float = 0.085
+    PINCH_RELEASE_THRESHOLD: float = 0.10
 
     # Hold timing: Holding pinch for >= HOLD_DELAY_SECONDS engages mouse hold/drag
     HOLD_DELAY_SECONDS: float = 2.0

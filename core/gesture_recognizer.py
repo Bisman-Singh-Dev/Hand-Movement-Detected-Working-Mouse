@@ -125,99 +125,41 @@ class GestureRecognizer:
         pinch_center = ((p1[0] + p2[0]) // 2, (p1[1] + p2[1]) // 2)
 
         # -------------------------------------------------------------
-        # 1. PRIMARY PINCH DETECTION (INDEX + THUMB) -> CLICK & 2s HOLD
+        # 1. PRIMARY PINCH DETECTION (INDEX + THUMB) -> INSTANT CLICK
         # -------------------------------------------------------------
-        is_pinch_active = (
-            dist_thumb_index < self.pinch_threshold
-            if not self.is_pinching
-            else dist_thumb_index < self.pinch_release_threshold
-        )
+        # Pixel distance between index fingertip (8) and thumb tip (4)
+        pixel_dist = math.hypot(p1[0] - p2[0], p1[1] - p2[1])
+
+        # A pinch occurs if normalized distance is small OR pixel distance is close (< 38px)
+        is_pinch_active = (dist_thumb_index < self.pinch_threshold) or (pixel_dist < 38)
 
         if is_pinch_active:
             if not self.is_pinching:
-                # Pinch just started
+                # Instant click trigger as soon as pinch touches!
                 self.is_pinching = True
                 self.pinch_start_time = current_time
-                self.current_state = MouseState.PINCHING
+                self.last_click_time = current_time
+                self.current_state = MouseState.CLICKED
                 return GestureEvent(
-                    "PINCH_START",
-                    MouseState.PINCHING,
-                    progress=0.0,
+                    "CLICK",
+                    MouseState.CLICKED,
+                    progress=1.0,
                     elapsed_sec=0.0,
                     pinch_center=pinch_center,
                 )
             else:
-                # Pinch is maintained
-                elapsed = current_time - self.pinch_start_time
-                progress = min(1.0, elapsed / self.hold_delay_seconds)
-
-                if elapsed >= self.hold_delay_seconds and not self.is_holding:
-                    # Transition to 2-second HOLD (Slider / Drag & Drop mode active!)
-                    self.is_holding = True
-                    self.current_state = MouseState.HOLDING
-                    return GestureEvent(
-                        "HOLD_START",
-                        MouseState.HOLDING,
-                        progress=1.0,
-                        elapsed_sec=elapsed,
-                        pinch_center=pinch_center,
-                    )
-                elif self.is_holding:
-                    self.current_state = MouseState.HOLDING
-                    return GestureEvent(
-                        "HOLDING",
-                        MouseState.HOLDING,
-                        progress=1.0,
-                        elapsed_sec=elapsed,
-                        pinch_center=pinch_center,
-                    )
-                else:
-                    self.current_state = MouseState.PINCHING
-                    return GestureEvent(
-                        "PINCH_PROGRESS",
-                        MouseState.PINCHING,
-                        progress=progress,
-                        elapsed_sec=elapsed,
-                        pinch_center=pinch_center,
-                    )
-
-        else:
-            # Pinch released or not active
-            if self.is_pinching:
-                elapsed = (
-                    (current_time - self.pinch_start_time)
-                    if self.pinch_start_time
-                    else 0.0
+                self.current_state = MouseState.PINCHING
+                return GestureEvent(
+                    "PINCH_PROGRESS",
+                    MouseState.PINCHING,
+                    progress=1.0,
+                    elapsed_sec=current_time - (self.pinch_start_time or current_time),
+                    pinch_center=pinch_center,
                 )
-                was_holding = self.is_holding
-
+        else:
+            if self.is_pinching:
                 self.is_pinching = False
-                self.is_holding = False
                 self.pinch_start_time = None
-
-                if was_holding:
-                    # User completed their drag/hold interaction (e.g. released slider)
-                    self.current_state = MouseState.IDLE
-                    return GestureEvent(
-                        "HOLD_RELEASE",
-                        MouseState.IDLE,
-                        progress=0.0,
-                        elapsed_sec=elapsed,
-                        pinch_center=pinch_center,
-                    )
-                elif (
-                    self.min_click_duration <= elapsed <= self.max_click_duration
-                ):
-                    # Quick pinch and release registers as a left click!
-                    self.current_state = MouseState.CLICKED
-                    self.last_click_time = current_time
-                    return GestureEvent(
-                        "CLICK",
-                        MouseState.CLICKED,
-                        progress=0.0,
-                        elapsed_sec=elapsed,
-                        pinch_center=pinch_center,
-                    )
 
         # -------------------------------------------------------------
         # 2. SECONDARY GESTURE: RIGHT CLICK PINCH (MIDDLE + THUMB)

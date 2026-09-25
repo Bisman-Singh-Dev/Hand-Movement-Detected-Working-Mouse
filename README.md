@@ -33,14 +33,12 @@ Unlike traditional gesture mouses that suffer from jitter or accidental clicks, 
 ## 🚀 Key Highlights & Features
 
 - **🎯 Jitter-Free Sub-Pixel Smoothing:** Implements an Exponential Moving Average (EMA) filter combined with velocity dampening to eliminate webcam sensor noise and hand tremors.
-- **🤏 Pinch-to-Click:** Natural pinch gesture between the index finger tip and thumb tip.
-- **⏱️ 2-Second Hold & Drag (Slider Mode):** Holding pinch for 2 seconds transitions from click mode to continuous drag. An on-screen circular progress ring fills up in real time to indicate transition.
+- **🤏 Instant Pinch-to-Click:** Natural and ultra-responsive pinch gesture between the index fingertip and thumb tip triggers instant Left Click with tactile visual ripple feedback.
 - **💻 Full Screen Reachability:** Configurable active tracking margin maps hand movement comfortably without forcing you to reach beyond your camera's field of view.
 - **⚡ Dual-Finger Scroll:** Extend index and middle fingers together to scroll web pages, documents, and code editors vertically.
 - **🖱️ Smart Right Click:** Middle-finger-to-thumb pinch triggers contextual right-click.
 - **🌌 Futuristic HUD Overlay:** Cyberpunk-inspired real-time telemetry displaying:
-  - 360° circular progress ring tracking pinch hold time (0.0s → 2.0s)
-  - Pulsating amber aura during active drag/slider interaction
+  - Visual pinch target reticle and active feedback ring
   - Active boundary box with glowing corner reticles
   - Real-time FPS counter, cursor coordinates, and state pill badges
   - Click ripple feedback animations
@@ -53,9 +51,7 @@ Unlike traditional gesture mouses that suffer from jitter or accidental clicks, 
 | Gesture | Movement | Action | State Feedback |
 | :--- | :--- | :--- | :--- |
 | **Move Cursor** | Move Index Finger across active region | Moves cursor smoothly | `TRACKING` (Emerald) |
-| **Left Click** | Quick pinch Index + Thumb and release (< 2.0s) | Performs standard Left Click | `CLICK!` (White Ripple) |
-| **Hold & Drag** | Pinch Index + Thumb and hold continuously ≥ 2.0s | Locks mouse button down (`mouseDown`) for sliders & dragging | `HOLD / SLIDER ACTIVE` (Amber Aura) |
-| **Release Drag** | Open fingers after holding | Releases mouse button (`mouseUp`) | `HOLD_RELEASE` |
+| **Left Click** | Pinch Index + Thumb together | Performs instant Left Click | `CLICK!` (White Ripple) |
 | **Right Click** | Pinch Middle Finger + Thumb and release | Opens contextual right-click menu | `RIGHT CLICK` (Purple) |
 | **Page Scroll** | Raise Index + Middle fingers together and glide up/down | Smooth vertical scrolling | `SCROLLING` |
 
