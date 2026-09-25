@@ -20,17 +20,35 @@ class HandTracker:
         """
         Initializes the MediaPipe Hands detector.
         """
-        import mediapipe as mp
+        try:
+            from mediapipe.python.solutions import hands as mp_hands
+            from mediapipe.python.solutions import drawing_utils as mp_draw
+            from mediapipe.python.solutions import drawing_styles as mp_draw_styles
+        except (ImportError, AttributeError):
+            try:
+                import mediapipe.solutions.hands as mp_hands
+                import mediapipe.solutions.drawing_utils as mp_draw
+                import mediapipe.solutions.drawing_styles as mp_draw_styles
+            except (ImportError, AttributeError):
+                import mediapipe as mp
+                if not hasattr(mp, "solutions"):
+                    raise RuntimeError(
+                        "Your installed version of MediaPipe does not include the 'solutions' module. "
+                        "Please run: pip install mediapipe==0.10.14"
+                    )
+                mp_hands = mp.solutions.hands
+                mp_draw = mp.solutions.drawing_utils
+                mp_draw_styles = mp.solutions.drawing_styles
 
-        self.mp_hands = mp.solutions.hands
+        self.mp_hands = mp_hands
         self.hands = self.mp_hands.Hands(
             static_image_mode=mode,
             max_num_hands=max_hands,
             min_detection_confidence=detection_con,
             min_tracking_confidence=track_con,
         )
-        self.mp_draw = mp.solutions.drawing_utils
-        self.mp_draw_styles = mp.solutions.drawing_styles
+        self.mp_draw = mp_draw
+        self.mp_draw_styles = mp_draw_styles
 
         # Landmark history for exponential smoothing
         self.prev_landmarks: Dict[int, Tuple[float, float]] = {}
