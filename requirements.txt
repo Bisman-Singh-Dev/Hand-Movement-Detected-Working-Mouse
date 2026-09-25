@@ -1,0 +1,11 @@
+# Core Computer Vision & Hand Landmark Tracking
+opencv-python>=4.8.0
+mediapipe>=0.10.0
+numpy>=1.24.0
+
+# Mouse Simulation & Control
+pyautogui>=0.9.54
+pynput>=1.7.6
+
+# Standalone Executable Packaging
+pyinstaller>=6.3.0
